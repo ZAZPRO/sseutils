@@ -4,34 +4,41 @@
   };
 
   outputs = inputs: {
-    packages = builtins.mapAttrs (
-      system: pkgs:
-      let
-        compiler = "${pkgs.gcc}/bin/gcc";
-      in
-      {
-        default = pkgs.mkShellNoCC {
-          packages =
-            with pkgs;
-            let
-              clangd = lib.hiPrio (
-                pkgsBuildBuild.writeShellScriptBin "clangd" ''
-                  ${pkgsBuildBuild.llvmPackages.clang-unwrapped}/bin/clangd --query-driver="${compiler}" "$@"
-                ''
-              );
-            in
-            [
-              clangd
-              gcc
-              gdb
-              bear
-              perf
-              nasm
-              nasmfmt
-              hyperfine
-            ];
-        };
-      }
-    ) inputs.nixpkgs.legacyPackages;
+    packages = builtins.mapAttrs (system: pkgs: {
+      bat = pkgs.stdenvNoCC.mkDerivation {
+        name = "bat";
+        src = ./bat;
+
+        nativeBuildInputs = with pkgs; [
+          nasm
+          mold
+        ];
+
+        buildPhase = ''
+          nasm --reproducible -f elf64 -g -F dwarf -Ov bat.asm -o bat.o && mold --static -o bat bat.o
+        '';
+
+        installPhase = ''
+          mkdir -p $out/bin
+          mv ./bat $out/bin/
+        '';
+
+        meta.mainProgram = "bat";
+      };
+    }) inputs.nixpkgs.legacyPackages;
+
+    devShells = builtins.mapAttrs (system: pkgs: {
+      default = pkgs.mkShellNoCC {
+        packages = with pkgs; [
+          mold
+          gdb
+          perf
+          nasm
+          nasmfmt
+          hyperfine
+        ];
+      };
+    }) inputs.nixpkgs.legacyPackages;
+
   };
 }
