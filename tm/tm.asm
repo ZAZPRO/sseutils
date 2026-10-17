@@ -4,7 +4,7 @@
 
         section .text
 _start:
-        rdtsc ; edx/rdx 32-bit high  eax/rax 32-bit low
+        rdtsc                          ; edx/rdx 32-bit high  eax/rax 32-bit low
 
         mov rax, SYS_EXIT
         mov rdi, %1

@@ -13,7 +13,7 @@
         ${system} = {
           bat = pkgs.stdenvNoCC.mkDerivation {
             name = "bat";
-            src = ./bat;
+            src = ./.;
 
             nativeBuildInputs = with pkgs; [
               nasm
@@ -21,12 +21,12 @@
             ];
 
             buildPhase = ''
-              nasm --reproducible -f elf64 -g -F dwarf -Ov bat.asm -o bat.o && mold --static -o bat bat.o
+              nasm --reproducible -Ilib -f elf64 -g -F dwarf -Ov bat/bat.asm -o bat.o && mold --static -o bat.elf bat.o
             '';
 
             installPhase = ''
               mkdir -p $out/bin
-              mv ./bat $out/bin/
+              mv ./bat.elf $out/bin/bat
             '';
 
             meta.mainProgram = "bat";
