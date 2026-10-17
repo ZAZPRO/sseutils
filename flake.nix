@@ -4,28 +4,36 @@
   };
 
   outputs = inputs: {
-    packages = builtins.mapAttrs (system: pkgs: {
-      bat = pkgs.stdenvNoCC.mkDerivation {
-        name = "bat";
-        src = ./bat;
+    packages =
+      let
+        system = "x86_64-linux";
+        pkgs = inputs.nixpkgs.legacyPackages.${system};
+      in
+      {
+        ${system} = {
+          bat = pkgs.stdenvNoCC.mkDerivation {
+            name = "bat";
+            src = ./bat;
 
-        nativeBuildInputs = with pkgs; [
-          nasm
-          mold
-        ];
+            nativeBuildInputs = with pkgs; [
+              nasm
+              mold
+            ];
 
-        buildPhase = ''
-          nasm --reproducible -f elf64 -g -F dwarf -Ov bat.asm -o bat.o && mold --static -o bat bat.o
-        '';
+            buildPhase = ''
+              nasm --reproducible -f elf64 -g -F dwarf -Ov bat.asm -o bat.o && mold --static -o bat bat.o
+            '';
 
-        installPhase = ''
-          mkdir -p $out/bin
-          mv ./bat $out/bin/
-        '';
+            installPhase = ''
+              mkdir -p $out/bin
+              mv ./bat $out/bin/
+            '';
 
-        meta.mainProgram = "bat";
+            meta.mainProgram = "bat";
+          };
+
+        };
       };
-    }) inputs.nixpkgs.legacyPackages;
 
     devShells = builtins.mapAttrs (system: pkgs: {
       default = pkgs.mkShellNoCC {
