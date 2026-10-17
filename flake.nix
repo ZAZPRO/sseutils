@@ -8,11 +8,10 @@
       let
         system = "x86_64-linux";
         pkgs = inputs.nixpkgs.legacyPackages.${system};
-      in
-      {
-        ${system} = {
-          bat = pkgs.stdenvNoCC.mkDerivation {
-            name = "bat";
+        mkasm =
+          path: name:
+          pkgs.stdenvNoCC.mkDerivation {
+            inherit name;
             src = ./.;
 
             nativeBuildInputs = with pkgs; [
@@ -21,17 +20,22 @@
             ];
 
             buildPhase = ''
-              nasm --reproducible -Ilib -f elf64 -g -F dwarf -Ov bat/bat.asm -o bat.o && mold --static -o bat.elf bat.o
+              nasm --reproducible -Ilib -f elf64 -g -F dwarf -Ov ${path}/${name}.asm -o ${name}.o && mold --static -o ${name}.elf ${name}.o
             '';
 
             installPhase = ''
               mkdir -p $out/bin
-              mv ./bat.elf $out/bin/bat
+              mv ./${name}.elf $out/bin/${name}
             '';
 
-            meta.mainProgram = "bat";
+            meta.mainProgram = name;
           };
 
+      in
+      {
+        ${system} = {
+          bat = mkasm "bat" "bat";
+          poweroff = mkasm "power" "poweroff";
         };
       };
 
