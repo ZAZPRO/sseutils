@@ -36,6 +36,7 @@
         ${system} = {
           bat = mkasm "bat" "bat";
           poweroff = mkasm "power" "poweroff";
+          reboot = mkasm "power" "reboot";
         };
       };
 
